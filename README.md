@@ -1,8 +1,12 @@
 # How's the Weather
 
-**How's the Weather** is a sleek and interactive weather web application that allows users to check real-time weather conditions for any city. The app displays temperature, humidity, local time, and a brief description of the weather, along with dynamic backgrounds and favicon updates that reflect the current weather conditions. Built with HTML, CSS, and JavaScript, it fetches data from the OpenWeatherMap API.
+**How's the Weather** is a sleek and interactive weather web application that allows users to check real-time weather conditions for any city. The app displays temperature, humidity, local time, and a brief description of the weather, along with dynamic backgrounds and favicon updates that reflect the current weather conditions. Built with HTML, CSS, and JavaScript, it fetches data from a secure serverless API route using the OpenWeatherMap API.
 
----
+
+## Live Demo
+
+Check it out here: [https://how-s-the-weather.vercel.app](https://how-s-the-weather.vercel.app)
+
 
 ## Features
 
@@ -24,50 +28,24 @@
 - Responsive design for both desktop and mobile devices.
 - Loading feedback while fetching data.
 - Handles errors gracefully (e.g., city not found).
+- API key is secured via a serverless function (not exposed in the front-end).
 
----
 
 ## Technologies Used
 
 - **HTML5**
 - **CSS3** (with responsive design and animated backgrounds)
 - **JavaScript** (ES6+)
-- **OpenWeatherMap API** for real-time weather data.
-
----
-
-## Installation & Usage
-
-1. **Clone the repository:**
-
-```git clone https://github.com/DevFabioBarros/hows-the-weather.git```
-
-2. **Navigate to the project folder:**
-
-```cd hows-the-weather```
+- **OpenWeatherMap API** for real-time weather data
+- **Vercel Serverless Functions** for secure API key handling
 
 
-3. **Open ```index.html``` in your browser:**
+## Usage
 
-No server is required; the app runs locally in any modern browser.
+1. Open [How's the Weather](https://how-s-the-weather.vercel.app)
+2. Search for a city
 
-4. **Search for a city:**
 
-Enter the city name in the input field and click "Search" or press Enter.
-
----
-## API Setup
-
-The app uses the OpenWeatherMap API. To use it, you need an API key:
-
-1. Sign up at OpenWeatherMap
-
-2. Generate an API key.
-
-3. Replace the API_KEY value in script.js with your own key:
-```const API_KEY = 'your_api_key_here';```
-
----
 ## Contributing
 Contributions are welcome! You can help by:
 
