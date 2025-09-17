@@ -1,6 +1,3 @@
-const API_KEY = process.env.NEXT_PUBLIC_WEATHER_API_KEY;
-const apiUrl = 'https://api.openweathermap.org/data/2.5/weather';
-
 const locationInput = document.getElementById('locationInput');
 const searchButton = document.getElementById('searchButton');
 const locationElement = document.getElementById('location');
@@ -46,39 +43,37 @@ function showLoading() {
     weatherInfo.classList.add('show');
 }
 
-function fetchWeather(location) {
-    const url = `${apiUrl}?q=${location}&appid=${API_KEY}&units=metric`;
+async function fetchWeather(location) {
+    try {
+        const response = await fetch(`/api/weather?city=${encodeURIComponent(location)}`);
+        if (!response.ok) throw new Error('Oops! City not found');
 
-    fetch(url)
-        .then(response => {
-            if (!response.ok) throw new Error('Oops! City not found');
-            return response.json();
-        })
-        .then(data => {
-            locationElement.textContent = data.name;
-            const temp = Math.round(data.main.temp);
-            temperatureElement.textContent = `${temp}°C`;
-            descriptionElement.textContent = capitalize(data.weather[0].description);
-            setWeatherIcon(data.weather[0].icon);
-            changeBackground(data.weather[0].main, data.timezone);
-            displayLocalTime(data.timezone);
-            displayAdditionalInfo(data);
-            errorMessageElement.textContent = '';
-            updateFaviconWithAPIIcon(data.weather[0].icon);
-            weatherInfo.classList.add('show');
-            locationInput.value = '';
-            locationInput.focus();
-        })
-        .catch(error => {
-            temperatureElement.textContent = '';
-            descriptionElement.textContent = '';
-            weatherIconElement.innerHTML = '';
-            timeElement.textContent = '';
-            humidityElement.textContent = '';
-            feelsLikeElement.textContent = '';
-            errorMessageElement.textContent = error.message;
-            weatherInfo.classList.add('show');
-        });
+        const data = await response.json();
+
+        locationElement.textContent = data.name;
+        const temp = Math.round(data.main.temp);
+        temperatureElement.textContent = `${temp}°C`;
+        descriptionElement.textContent = capitalize(data.weather[0].description);
+        setWeatherIcon(data.weather[0].icon);
+        changeBackground(data.weather[0].main, data.timezone);
+        displayLocalTime(data.timezone);
+        displayAdditionalInfo(data);
+        updateFaviconWithAPIIcon(data.weather[0].icon);
+
+        errorMessageElement.textContent = '';
+        weatherInfo.classList.add('show');
+        locationInput.value = '';
+        locationInput.focus();
+    } catch (error) {
+        temperatureElement.textContent = '';
+        descriptionElement.textContent = '';
+        weatherIconElement.innerHTML = '';
+        timeElement.textContent = '';
+        humidityElement.textContent = '';
+        feelsLikeElement.textContent = '';
+        errorMessageElement.textContent = error.message;
+        weatherInfo.classList.add('show');
+    }
 }
 
 function setWeatherIcon(iconCode) {
