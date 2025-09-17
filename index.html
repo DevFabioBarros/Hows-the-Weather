@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How's the Weather</title>
+    <link rel="stylesheet" href="style.css">
+    <link id="favicon" rel="icon" href="https://openweathermap.org/img/wn/02d.png" type="image/png">
+</head>
+<body>
+    <div class="container">
+        <h1>How's the Weather?</h1>
+
+        <div class="input-group">
+            <input type="text" id="locationInput" placeholder="Enter a city">
+            <button id="searchButton">Search</button>
+        </div>
+
+        <div class="weather-info">
+            <div class="top-row">
+                <div class="location-temp">
+                    <h2 id="location"></h2>
+                    <p id="temperature"></p>
+                </div>
+                <div class="weather-icon"></div>
+            </div>
+            <div class="bottom-grid">
+                <p id="description"></p>
+                <p id="time"></p>
+                <p id="humidity"></p>
+                <p id="feels-like"></p>
+            </div>
+            <p id="errorMessage"></p>
+        </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
