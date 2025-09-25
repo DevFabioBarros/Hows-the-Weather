@@ -9,24 +9,82 @@ const timeElement = document.getElementById('time');
 const humidityElement = document.getElementById('humidity');
 const feelsLikeElement = document.getElementById('feels-like');
 const errorMessageElement = document.getElementById('errorMessage');
+const suggestionsElement = document.getElementById('suggestions');
 
 const iconUrlBase = 'https://openweathermap.org/img/wn/';
 
 searchButton.addEventListener('click', () => {
     const location = locationInput.value.trim();
     if (location) {
+        hideSuggestions();
         showLoading();
         fetchWeather(location);
     }
 });
 
-locationInput.addEventListener('keydown', (event) => {
+locationInput.addEventListener('keydown', async (event) => {
+    const suggestions = document.querySelectorAll('.suggestion-item');
+    let selectedIndex = Array.from(suggestions).findIndex(item => item.classList.contains('selected'));
+
     if (event.key === 'Enter') {
-        const location = locationInput.value.trim();
-        if (location) {
+        event.preventDefault(); // Impede o comportamento padrão do Enter
+        if (suggestions.length > 0) {
+            // Seleciona a primeira sugestão automaticamente
+            const firstSuggestion = suggestions[0];
+            locationInput.value = firstSuggestion.textContent;
+            hideSuggestions();
             showLoading();
-            fetchWeather(location);
+            fetchWeather({
+                lat: firstSuggestion.dataset.lat,
+                lon: firstSuggestion.dataset.lon,
+                name: firstSuggestion.dataset.name
+            });
+        } else if (locationInput.value.trim()) {
+            // Caso não haja sugestões, mas o input não esteja vazio, faz a busca com o texto digitado
+            hideSuggestions();
+            showLoading();
+            fetchWeather(locationInput.value.trim());
         }
+    } else if (event.key === 'Escape') {
+        hideSuggestions();
+    } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        suggestions.forEach(item => item.classList.remove('selected'));
+
+        if (event.key === 'ArrowDown') {
+            selectedIndex = Math.min(selectedIndex + 1, suggestions.length - 1);
+        } else if (event.key === 'ArrowUp') {
+            selectedIndex = Math.max(selectedIndex - 1, 0);
+        }
+
+        if (selectedIndex >= 0) {
+            suggestions[selectedIndex].classList.add('selected');
+            locationInput.value = suggestions[selectedIndex].textContent;
+        }
+    }
+});
+
+locationInput.addEventListener('input', async (event) => {
+    const query = event.target.value.trim();
+    if (query.length < 3) {
+        hideSuggestions();
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
+        if (!response.ok) throw new Error('No suggestions');
+
+        const suggestions = await response.json();
+        displaySuggestions(suggestions);
+    } catch (error) {
+        hideSuggestions();
+    }
+});
+
+document.addEventListener('click', (event) => {
+    if (!event.target.closest('.input-group')) {
+        hideSuggestions();
     }
 });
 
@@ -40,13 +98,21 @@ function showLoading() {
     humidityElement.textContent = '';
     feelsLikeElement.textContent = '';
     errorMessageElement.textContent = 'Loading...';
+    errorMessageElement.classList.add('loading');
     weatherInfo.classList.add('show');
 }
 
-async function fetchWeather(location) {
+async function fetchWeather(locationOrCoords) {
+    let apiUrl;
     try {
-        const response = await fetch(`/api/weather?city=${encodeURIComponent(location)}`);
-        if (!response.ok) throw new Error('Oops! City not found');
+        if (typeof locationOrCoords === 'object' && locationOrCoords.lat && locationOrCoords.lon) {
+            apiUrl = `/api/weather?lat=${locationOrCoords.lat}&lon=${locationOrCoords.lon}`;
+        } else {
+            apiUrl = `/api/weather?city=${encodeURIComponent(locationOrCoords)}`;
+        }
+        
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error('Oops! Location not found');
 
         const data = await response.json();
 
@@ -61,9 +127,10 @@ async function fetchWeather(location) {
         updateFaviconWithAPIIcon(data.weather[0].icon);
 
         errorMessageElement.textContent = '';
+        errorMessageElement.classList.remove('loading');
         weatherInfo.classList.add('show');
         locationInput.value = '';
-        locationInput.focus();
+        locationInput.blur();
     } catch (error) {
         temperatureElement.textContent = '';
         descriptionElement.textContent = '';
@@ -71,9 +138,46 @@ async function fetchWeather(location) {
         timeElement.textContent = '';
         humidityElement.textContent = '';
         feelsLikeElement.textContent = '';
+        errorMessageElement.classList.remove('loading');
         errorMessageElement.textContent = error.message;
         weatherInfo.classList.add('show');
     }
+}
+
+function displaySuggestions(suggestions) {
+    suggestionsElement.innerHTML = '';
+    if (suggestions.length === 0) {
+        hideSuggestions();
+        return;
+    }
+
+    const ul = document.createElement('ul');
+    suggestions.forEach((suggestion, index) => {
+        const li = document.createElement('li');
+        li.className = 'suggestion-item';
+        li.textContent = suggestion.fullName;
+        li.dataset.lat = suggestion.lat;
+        li.dataset.lon = suggestion.lon;
+        li.dataset.name = suggestion.name;
+        li.addEventListener('click', () => {
+            locationInput.value = suggestion.fullName;
+            hideSuggestions();
+            showLoading();
+            fetchWeather({ lat: suggestion.lat, lon: suggestion.lon, name: suggestion.name });
+        });
+        li.addEventListener('mouseenter', () => {
+            document.querySelectorAll('.suggestion-item').forEach(item => item.classList.remove('selected'));
+            li.classList.add('selected');
+        });
+        ul.appendChild(li);
+    });
+    suggestionsElement.appendChild(ul);
+    suggestionsElement.classList.add('show');
+}
+
+function hideSuggestions() {
+    suggestionsElement.classList.remove('show');
+    suggestionsElement.innerHTML = '';
 }
 
 function setWeatherIcon(iconCode) {
